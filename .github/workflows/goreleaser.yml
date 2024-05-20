@@ -1,0 +1,127 @@
+# .goreleaser.yml
+builds:
+  # 你能用 多个 构建 定义，yaml格式
+  -
+    #  main.go 文件或者主包的路径 .
+    # 默认 `.`.
+    main: ./main.go
+
+    # 命名 最终二进制文件的模版.
+    # 默认是 项目目录的名称.
+    binary: BatchJarSource
+
+    # 设置 命令参数到自定义的 build tags.
+    # 默认是 空.
+    flags:
+      - -tags=dev
+
+    # Custom asmflags templates.
+    # 默认是 空.
+    asmflags:
+      - -D mysymbol
+      - all=-trimpath={{.Env.GOPATH}}
+
+    # Custom gcflags templates.
+    # 默认是 空.
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+      - ./dontoptimizeme=-N
+
+    # Custom ldflags templates.
+    # 默认是 `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}`.
+    ldflags:
+     - -s -w -X main.build={{.Version}}
+     - ./usemsan=-msan
+
+    # 运行构建期间的环境变量.
+    # 默认是 空.
+    env:
+      - CGO_ENABLED=0
+
+    # GOOS 构建列表r.
+    # 更多内容，请参考: https://golang.org/doc/install/source#environment
+    # 默认为 darwin 和 linux.
+    goos:
+      - freebsd
+      - windows
+
+    # GOARCH 构建系结构.
+    # 更多内容，请参考: https://golang.org/doc/install/source#environment
+    # 默认为 386 和 amd64.
+    goarch:
+      - amd64
+      - arm
+      - arm64
+
+    # GOARM 要构建的 ， 若GOARCH 是 arm时.
+    # 更多内容，请参考: https://golang.org/doc/install/source#environment
+    # 默认是 只有 6.
+    goarm:
+      - 6
+      - 7
+
+    #  GOOS + GOARCH + GOARM 组合忽略列表.
+    # 默认是 空.
+    ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: linux
+        goarch: arm
+        goarm: 7
+
+    # Hooks 可用于 自定义最终二进制文件,
+    # 例如, 运行 generators.
+    # 默认 都为 空.
+    hooks:
+      pre: rice embed-go
+      post: ./script.sh
+# .goreleaser.yml
+archive:
+  # 存档 命名 模版.
+  # 默认:
+  # - if 格式为 `tar.gz` 或者 `zip`:
+  #   - `{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}`
+  # - if 格式为 是 `binary`:
+  #   - `{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}`
+  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+  # 替换 存档名称中的 GOOS 和 GOARCH.
+  # Keys 应为合法 GOOSs 或 GOARCHs.
+  # Values 应为 恰当的替代名称.
+  # 默认是 空.
+  replacements:
+    amd64: 64-bit
+    386: 32-bit
+    darwin: macOS
+    linux: Tux
+
+  # 设为 true, 如果你想 所有 文件都包裹进存档文件.
+  # 若设为 true 和 你 解压'goreleaser_Linux_arm64.tar.gz',
+  # 你会得到 'goreleaser_Linux_arm64' 文件夹.
+  # If 设为 false, 所有文件都分离开来.
+  # 默认是 false.
+  wrap_in_directory: true
+
+  # Archive 格式. 合法选项 `tar.gz`, `zip` and `binary`.
+  # 若 `binary`, 压缩文件不创建，且 binaries 代之直接上传.
+  # 与 name_template 合作 和 下面 files字段中会被忽略.
+  # 默认是 `tar.gz`.
+  format: zip
+
+  # 可根据 GOOSs，指定 格式.
+  # 常见情况是，window下为zip格式.
+  # 默认是 空.
+  format_overrides:
+    - goos: windows
+      format: zip
+
+  # 你想加入到 archive，匹配的 files/globs，.
+  # 默认为匹配 `LICENCE*`, `LICENSE*` ,
+  # `README*` 和 `CHANGELOG*` (大小写略) 的文件.
+  files:
+    - LICENSE.txt
+    - README.md
+    - CHANGELOG.md
+    - docs/*
+    - design/*.png
+    - templates/**/*
