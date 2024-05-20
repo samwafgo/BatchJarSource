@@ -1,9 +1,5 @@
 name: go-releaser
 
-permissions:
-  contents: write
-  id-token: write
-  packages: write
 
 on:
   push:
@@ -30,5 +26,3 @@ jobs:
           distribution: goreleaser
           version: latest
           args: release --clean ${{ env.flags }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
