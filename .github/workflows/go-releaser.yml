@@ -9,8 +9,10 @@ on:
   push:
     branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
-
+    branches: [ "master" ] 
+  create:
+    tags:
+    - v*
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
